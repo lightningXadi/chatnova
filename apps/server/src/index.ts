@@ -521,11 +521,21 @@ function handle(ws: any, info: ClientInfo, msg: any) {
 }
 
 // ---- Serve frontend
-const webDist = path.join(process.cwd(), 'apps', 'web', 'dist')
+// import.meta.url = file:///opt/render/project/src/apps/server/dist/index.js
+// so we go up 3 levels: dist -> server -> apps -> repo root, then into apps/web/dist
+import { fileURLToPath } from 'node:url'
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const webDist = path.resolve(__dirname, '..', '..', '..', 'apps', 'web', 'dist')
+console.log('[canvas] webDist:', webDist, 'exists:', fs.existsSync(webDist))
 if (fs.existsSync(webDist)) {
   app.use(express.static(webDist))
-  app.get('*', (_req, res) => {
+  app.get('/{*path}', (_req, res) => {
     res.sendFile(path.join(webDist, 'index.html'))
+  })
+} else {
+  app.get('/{*path}', (_req, res) => {
+    res.status(500).send('Frontend dist not found at: ' + webDist)
   })
 }
 
