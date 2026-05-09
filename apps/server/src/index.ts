@@ -521,11 +521,21 @@ function handle(ws: any, info: ClientInfo, msg: any) {
 }
 
 // ---- Serve frontend
-const webDist = path.join(process.cwd(), 'apps', 'web', 'dist')
-if (fs.existsSync(webDist)) {
+const candidatePaths = [
+  path.join(process.cwd(), 'apps', 'web', 'dist'),
+  path.join(process.cwd(), '..', 'web', 'dist'),
+]
+const webDist = candidatePaths.find(p => fs.existsSync(p))
+console.log('[canvas] cwd:', process.cwd())
+console.log('[canvas] webDist resolved:', webDist ?? 'NOT FOUND')
+if (webDist) {
   app.use(express.static(webDist))
   app.get('*', (_req, res) => {
     res.sendFile(path.join(webDist, 'index.html'))
+  })
+} else {
+  app.get('*', (_req, res) => {
+    res.status(404).send('Frontend not found. Tried: ' + candidatePaths.join(', '))
   })
 }
 
