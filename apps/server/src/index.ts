@@ -7,8 +7,8 @@ import fs from 'node:fs'
 import { WebSocketServer } from 'ws'
 import { z } from 'zod'
 import multer from 'multer'
-import { openDb } from './db'
-import { hashPassword, newId, requireAuth, signToken, verifyPassword, verifyToken } from './auth'
+import { openDb } from './db.js'
+import { hashPassword, newId, requireAuth, signToken, verifyPassword, verifyToken } from './auth.js'
 
 const PORT = Number(process.env.PORT || 8787)
 
