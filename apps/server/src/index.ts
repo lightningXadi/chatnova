@@ -520,6 +520,15 @@ function handle(ws: any, info: ClientInfo, msg: any) {
   }
 }
 
+// ---- Serve frontend
+const webDist = path.join(process.cwd(), 'apps', 'web', 'dist')
+if (fs.existsSync(webDist)) {
+  app.use(express.static(webDist))
+  app.get('*', (_req, res) => {
+    res.sendFile(path.join(webDist, 'index.html'))
+  })
+}
+
 server.listen(PORT, () => {
   console.log(`[canvas] server listening on http://localhost:${PORT}`)
 })
