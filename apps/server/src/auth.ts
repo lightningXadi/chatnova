@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import { nanoid } from 'nanoid'
 import type { Request, Response, NextFunction } from 'express'
-import type { DB } from './db'
+import type { DB } from './db.js'
 
 const JWT_SECRET = process.env.CANVAS_JWT_SECRET || 'dev-secret-change-me'
 const JWT_ISSUER = 'canvas'
