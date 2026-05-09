@@ -172,7 +172,7 @@ export function MessageRow({
         {/* Attachments */}
         {msg.attachments?.map((att) => (
           <div key={att.id} style={{ marginTop: 6 }}>
-            {att.mime?.startsWith('image/') ? (
+            {att.kind === 'image' ? (
               <img
                 src={att.url}
                 alt={att.name}
