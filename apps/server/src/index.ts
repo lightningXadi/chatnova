@@ -530,11 +530,11 @@ const webDist = path.resolve(__dirname, '..', '..', '..', 'apps', 'web', 'dist')
 console.log('[canvas] webDist:', webDist, 'exists:', fs.existsSync(webDist))
 if (fs.existsSync(webDist)) {
   app.use(express.static(webDist))
-  app.get('/{*path}', (_req, res) => {
+  app.use((_req, res) => {
     res.sendFile(path.join(webDist, 'index.html'))
   })
 } else {
-  app.get('/{*path}', (_req, res) => {
+  app.use((_req, res) => {
     res.status(500).send('Frontend dist not found at: ' + webDist)
   })
 }
