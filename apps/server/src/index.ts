@@ -134,8 +134,8 @@ app.post('/api/workspaces', requireAuth(db), (req, res) => {
 // ---- Invite Links
 app.post('/api/workspaces/:workspaceId/invites', requireAuth(db), (req, res) => {
   const userId = (req as any).user.id as string
-  const { workspaceId } = req.params
-  const member = requireWorkspaceMember(userId, workspaceId!)
+  const workspaceId = req.params.workspaceId as string
+  const member = requireWorkspaceMember(userId, workspaceId)
   if (!member) return res.status(403).json({ error: 'Access denied.' })
 
   const token = newId('inv')
@@ -149,7 +149,7 @@ app.post('/api/workspaces/:workspaceId/invites', requireAuth(db), (req, res) => 
 })
 
 app.get('/api/invites/:token', (req, res) => {
-  const { token } = req.params
+  const token = req.params.token as string
   const invite = db
     .prepare('SELECT i.token, i.workspace_id, i.expires_at, w.name as workspace_name FROM invite_links i JOIN workspaces w ON w.id = i.workspace_id WHERE i.token = ?')
     .get(token) as { token: string; workspace_id: string; expires_at: number; workspace_name: string } | undefined
@@ -162,7 +162,7 @@ app.get('/api/invites/:token', (req, res) => {
 
 app.post('/api/invites/:token/join', requireAuth(db), (req, res) => {
   const userId = (req as any).user.id as string
-  const { token } = req.params
+  const token = req.params.token as string
 
   const invite = db
     .prepare('SELECT workspace_id, expires_at FROM invite_links WHERE token = ?')
@@ -193,7 +193,7 @@ function requireWorkspaceMember(userId: string, workspaceId: string) {
 
 app.get('/api/workspaces/:workspaceId/nav', requireAuth(db), (req, res) => {
   const userId = (req as any).user.id as string
-  const workspaceId = req.params.workspaceId!
+  const workspaceId = req.params.workspaceId as string
   if (!requireWorkspaceMember(userId, workspaceId)) return res.status(403).json({ error: 'Access denied.' })
 
   const channels = db
@@ -245,7 +245,7 @@ app.get('/api/workspaces/:workspaceId/nav', requireAuth(db), (req, res) => {
 
 app.get('/api/workspaces/:workspaceId/channels/:channelId/messages', requireAuth(db), (req, res) => {
   const userId = (req as any).user.id as string
-  const { workspaceId, channelId } = req.params
+  const workspaceId = req.params.workspaceId as string; const channelId = req.params.channelId as string
   if (!requireWorkspaceMember(userId, workspaceId)) return res.status(403).json({ error: 'Access denied.' })
   const limit = Math.min(Number(req.query.limit || 50), 200)
   const rows = db
@@ -267,7 +267,7 @@ app.get('/api/workspaces/:workspaceId/channels/:channelId/messages', requireAuth
 
 app.get('/api/workspaces/:workspaceId/dms/:dmId/messages', requireAuth(db), (req, res) => {
   const userId = (req as any).user.id as string
-  const { workspaceId, dmId } = req.params
+  const workspaceId = req.params.workspaceId as string; const dmId = req.params.dmId as string
   if (!requireWorkspaceMember(userId, workspaceId)) return res.status(403).json({ error: 'Access denied.' })
   const dm = db
     .prepare('SELECT id FROM dms WHERE id = ? AND workspace_id = ? AND (user_a = ? OR user_b = ?)')
@@ -294,7 +294,7 @@ app.get('/api/workspaces/:workspaceId/dms/:dmId/messages', requireAuth(db), (req
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } })
 app.post('/api/workspaces/:workspaceId/uploads', requireAuth(db), upload.single('file'), (req, res) => {
   const userId = (req as any).user.id as string
-  const workspaceId = req.params.workspaceId!
+  const workspaceId = req.params.workspaceId as string
   if (!requireWorkspaceMember(userId, workspaceId)) return res.status(403).json({ error: 'Access denied.' })
   const file = req.file
   if (!file) return res.status(400).json({ error: 'Missing file.' })
@@ -323,7 +323,7 @@ app.post('/api/workspaces/:workspaceId/uploads', requireAuth(db), upload.single(
 // ---- Search (FTS)
 app.get('/api/workspaces/:workspaceId/search', requireAuth(db), (req, res) => {
   const userId = (req as any).user.id as string
-  const workspaceId = req.params.workspaceId!
+  const workspaceId = req.params.workspaceId as string
   const q = String(req.query.q || '').trim()
   if (!q) return res.json({ results: [] })
   if (!requireWorkspaceMember(userId, workspaceId)) return res.status(403).json({ error: 'Access denied.' })
@@ -371,7 +371,7 @@ server.on('upgrade', (req, socket, head) => {
   }
 })
 
-wss.on('connection', (ws: any, _req, url: URL) => {
+wss.on('connection', (ws: any, _req: import('http').IncomingMessage, url: URL) => {
   const token = url.searchParams.get('token') || ''
   const workspaceId = url.searchParams.get('workspaceId') || ''
   let info: ClientInfo | null = null
